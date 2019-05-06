@@ -36,7 +36,7 @@ extern const PinDescription g_APinDescription[]=
   // Pins 0-25 are PA0-PA25
 
   // 0-2
-  { PIOA, PIO_PA0B_TIOA0,		ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT, (PIN_ATTR_DIGITAL|PIN_ATTR_TIMER),	NO_ADC, NOT_ON_PWM,  TC0_CHA0	  }, // PS_ON
+  { PIOA, PIO_PA0,				ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT,  PIN_ATTR_DIGITAL,					NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // PS_ON
   { PIOA, PIO_PA1,				ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT,  PIN_ATTR_DIGITAL,                	NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // ENN to all stepper drivers
   { PIOA, PIO_PA2B_SCK0,		ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT,  PIN_ATTR_DIGITAL,					NO_ADC, NOT_ON_PWM,  NOT_ON_TIMER }, // SCK0 (daughter boards, external SD card)
 
@@ -206,12 +206,26 @@ void ConfigurePin(const PinDescription& pinDesc)
 	pio_configure(pinDesc.pPort, pinDesc.ulPinType, pinDesc.ulPin, pinDesc.ulPinConfiguration);
 }
 
+void ConfigurePin(Pin pin)
+{
+	if (pin < ARRAY_SIZE(g_APinDescription))
+	{
+		ConfigurePin(g_APinDescription[pin]);
+	}
+}
+
+// Return true if this pin exists and can do PWM
+bool IsPwmCapable(Pin pin)
+{
+	return pin < ARRAY_SIZE(g_APinDescription) && (g_APinDescription[pin].ulPinAttribute & (PIN_ATTR_PWM | PIN_ATTR_TIMER)) != 0;
+}
+
 extern "C" void init( void )
 {
 #ifndef PCCB
 	// Initialize Serial port U(S)ART pins
-	ConfigurePin(g_APinDescription[APINS_Serial0]);				// PanelDue uses UART1
-	setPullup(APIN_Serial0_RXD, true); 							// Enable pullup for RxD
+	ConfigurePin(APINS_Serial0);				// PanelDue uses UART1
+	setPullup(APIN_Serial0_RXD, true); 			// Enable pullup for RxD
 #endif
 
 	// No need to initialize the USB pins on the SAM4S because they are USB by default
@@ -223,8 +237,8 @@ extern "C" void init( void )
 	AnalogOutInit();
 
 	// Initialize HSMCI pins
-	ConfigurePin(g_APinDescription[APIN_HSMCI_CLOCK]);
-	ConfigurePin(g_APinDescription[APINS_HSMCI_DATA]);
+	ConfigurePin(APIN_HSMCI_CLOCK);
+	ConfigurePin(APINS_HSMCI_DATA);
 
 #ifndef PCCB
 	// Set up PB4..PB7 as normal I/O, not JTAG
