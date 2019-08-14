@@ -93,7 +93,7 @@
 #define SD_MMC_HSMCI_SLOT_0_SIZE	4			// HSMCI bus width
 #define SD_MMC_SPI_MEM_CNT			1			// Number of SPI card slots supported
 
-#define SD_MMC_SPI_MAX_CLOCK		(4000000)	// Max 4MHz clock for SPI cards, to allow a reasonable cable length
+#define SD_MMC_SPI_MAX_CLOCK		(2000000)	// Max 4MHz clock for SPI cards, to allow a reasonable cable length
 
 #define SD_MMC_WP_DETECT_VALUE		false
 
