@@ -27,11 +27,8 @@
  *        Definitions
  *----------------------------------------------------------------------------*/
 
-/** Frequency of the board main oscillator */
-#define VARIANT_MAINOSC		12000000
-
 /** Master clock frequency */
-#define VARIANT_MCK			120000000
+#define VARIANT_MCK			150000000
 
 /*----------------------------------------------------------------------------
  *        Headers
@@ -167,6 +164,9 @@ constexpr Pin APINS_Serial0 = 137;
 constexpr Pin APINS_Serial1 = 138;
 
 // CAN
+constexpr Pin APIN_CAN0_RX = PortBPin(3);
+constexpr Pin APIN_CAN0_TX = PortBPin(2);
+
 constexpr Pin APIN_CAN1_RX = PortCPin(12);
 constexpr Pin APIN_CAN1_TX = PortDPin(12);
 

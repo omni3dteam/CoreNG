@@ -3,7 +3,7 @@
  *
  * \brief SAM Control Area Network (MCAN) Low Level Driver
  *
- * Copyright (c) 2015-2018 Microchip Technology Inc. and its subsidiaries.
+ * Copyright (c) 2015-2019 Microchip Technology Inc. and its subsidiaries.
  *
  * \asf_license_start
  *
@@ -52,35 +52,37 @@ extern "C" {
 /* Get a value of 2 to 15 bit. */
 #define BIT_2_TO_15_MASK         0x0000fffc
 
+#define __nocache	__attribute__((section(".ram_nocache")))
+
 /* Message ram definition. */
-COMPILER_ALIGNED(4)
+COMPILER_ALIGNED(4) __nocache
 static struct mcan_rx_element_buffer mcan0_rx_buffer[CONF_MCAN0_RX_BUFFER_NUM];
-COMPILER_ALIGNED(4)
+COMPILER_ALIGNED(4) __nocache
 static struct mcan_rx_element_fifo_0 mcan0_rx_fifo_0[CONF_MCAN0_RX_FIFO_0_NUM];
-COMPILER_ALIGNED(4)
+COMPILER_ALIGNED(4) __nocache
 static struct mcan_rx_element_fifo_1 mcan0_rx_fifo_1[CONF_MCAN0_RX_FIFO_1_NUM];
-COMPILER_ALIGNED(4)
+COMPILER_ALIGNED(4) __nocache
 static struct mcan_tx_element mcan0_tx_buffer[CONF_MCAN0_TX_BUFFER_NUM + CONF_MCAN0_TX_FIFO_QUEUE_NUM];
-COMPILER_ALIGNED(4)
+COMPILER_ALIGNED(4) __nocache
 static struct mcan_tx_event_element mcan0_tx_event_fifo[CONF_MCAN0_TX_EVENT_FIFO];
-COMPILER_ALIGNED(4)
+COMPILER_ALIGNED(4) __nocache
 static struct mcan_standard_message_filter_element mcan0_rx_standard_filter[CONF_MCAN0_RX_STANDARD_ID_FILTER_NUM];
-COMPILER_ALIGNED(4)
+COMPILER_ALIGNED(4) __nocache
 static struct mcan_extended_message_filter_element mcan0_rx_extended_filter[CONF_MCAN0_RX_EXTENDED_ID_FILTER_NUM];
 
-COMPILER_ALIGNED(4)
+COMPILER_ALIGNED(4) __nocache
 static struct mcan_rx_element_buffer mcan1_rx_buffer[CONF_MCAN1_RX_BUFFER_NUM];
-COMPILER_ALIGNED(4)
+COMPILER_ALIGNED(4) __nocache
 static struct mcan_rx_element_fifo_0 mcan1_rx_fifo_0[CONF_MCAN1_RX_FIFO_0_NUM];
-COMPILER_ALIGNED(4)
+COMPILER_ALIGNED(4) __nocache
 static struct mcan_rx_element_fifo_1 mcan1_rx_fifo_1[CONF_MCAN1_RX_FIFO_1_NUM];
-COMPILER_ALIGNED(4)
+COMPILER_ALIGNED(4) __nocache
 static struct mcan_tx_element mcan1_tx_buffer[CONF_MCAN1_TX_BUFFER_NUM + CONF_MCAN1_TX_FIFO_QUEUE_NUM];
-COMPILER_ALIGNED(4)
+COMPILER_ALIGNED(4) __nocache
 static struct mcan_tx_event_element mcan1_tx_event_fifo[CONF_MCAN1_TX_EVENT_FIFO];
-COMPILER_ALIGNED(4)
+COMPILER_ALIGNED(4) __nocache
 static struct mcan_standard_message_filter_element mcan1_rx_standard_filter[CONF_MCAN1_RX_STANDARD_ID_FILTER_NUM];
-COMPILER_ALIGNED(4)
+COMPILER_ALIGNED(4) __nocache
 static struct mcan_extended_message_filter_element mcan1_rx_extended_filter[CONF_MCAN1_RX_EXTENDED_ID_FILTER_NUM];
 
 /**
@@ -269,7 +271,7 @@ void mcan_init(struct mcan_module *const module_inst, Mcan *hw,
 	pmc_disable_pck(PMC_PCK_5);
 
 #if 1	// dc42 use UPLL not PLLA as recommended in the documentation, so the MCAN clock is independent of the CPU clock frequency
-	pmc_switch_pck_to_upllck(PMC_PCK_5, PMC_PCK_PRES(7));		// run PCLK5 at 60MHz, we'll divide it by 3 to get 20MHz
+	pmc_switch_pck_to_upllck(PMC_PCK_5, PMC_PCK_PRES(9));		// run PCLK5 at 48MHz
 #else
 	pmc_switch_pck_to_pllack(PMC_PCK_5, PMC_PCK_PRES(9));
 #endif
@@ -310,12 +312,12 @@ void mcan_set_baudrate(Mcan *hw, uint32_t baudrate)
 
 	mcan_nbtp_nbrp_value = gclk_mcan_value / baudrate / (3 + mcan_nbtp_ntseg1_value + mcan_nbtp_ntseg2_value);
 #if (SAMV71B || SAME70B || SAMV70B)
-	hw->MCAN_NBTP = MCAN_NBTP_NBRP(mcan_nbtp_nbrp_value) |
+	hw->MCAN_NBTP = MCAN_NBTP_NBRP(mcan_nbtp_nbrp_value - 1) |
 			MCAN_NBTP_NSJW(mcan_nbtp_nsgw_value) |
 			MCAN_NBTP_NTSEG1(mcan_nbtp_ntseg1_value) |
 			MCAN_NBTP_NTSEG2(mcan_nbtp_ntseg2_value);
 #else
-	hw->MCAN_BTP = MCAN_BTP_BRP(mcan_nbtp_nbrp_value) |
+	hw->MCAN_BTP = MCAN_BTP_BRP(mcan_nbtp_nbrp_value - 1) |
 			MCAN_BTP_SJW(mcan_nbtp_nsgw_value) |
 			MCAN_BTP_TSEG1(mcan_nbtp_ntseg1_value) |
 			MCAN_BTP_TSEG2(mcan_nbtp_ntseg2_value);
@@ -338,12 +340,12 @@ void mcan_fd_set_baudrate(Mcan *hw, uint32_t baudrate)
 
 	mcan_fd_dbtp_dbrp_value = gclk_mcan_fd_value / baudrate / (3 + mcan_fd_dbtp_dtseg1_value + mcan_fd_dbtp_dtseg2_value);
 #if (SAMV71B || SAME70B || SAMV70B)
-	hw->MCAN_DBTP = MCAN_DBTP_DBRP(mcan_fd_dbtp_dbrp_value) |
+	hw->MCAN_DBTP = MCAN_DBTP_DBRP(mcan_fd_dbtp_dbrp_value - 1) |
 			MCAN_DBTP_DSJW(mcan_fd_dbtp_dsgw_value) |
 			MCAN_DBTP_DTSEG1(mcan_fd_dbtp_dtseg1_value) |
 			MCAN_DBTP_DTSEG2(mcan_fd_dbtp_dtseg2_value);
 #else
-	hw->MCAN_FBTP = MCAN_FBTP_FBRP(mcan_fd_dbtp_dbrp_value) |
+	hw->MCAN_FBTP = MCAN_FBTP_FBRP(mcan_fd_dbtp_dbrp_value - 1) |
 			MCAN_FBTP_FSJW(mcan_fd_dbtp_dsgw_value) |
 			MCAN_FBTP_FTSEG1(mcan_fd_dbtp_dtseg1_value) |
 			MCAN_FBTP_FTSEG2(mcan_fd_dbtp_dtseg2_value);
